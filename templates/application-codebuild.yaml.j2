@@ -1,0 +1,10 @@
+{% macro properties(stage) %}{% include './application-codebuild-properties.yaml' %}{% endmacro %}
+Resources:
+
+  StagingProject:
+    Type: AWS::CodeBuild::Project
+{{ properties('staging')|indent(4, True) }}
+
+  ProductionProject:
+    Type: AWS::CodeBuild::Project
+{{ properties('production')|indent(4, True) }}

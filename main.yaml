@@ -1,0 +1,11 @@
+- hosts: localhost
+  vars:
+    ansible_python_interpreter: "/usr/bin/env python"
+
+  tasks:
+
+    - include: includes/assume_role.yaml
+    - include: includes/application.yaml
+      environment: "{{ aws_credentials }}"
+
+

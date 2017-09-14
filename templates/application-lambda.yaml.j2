@@ -1,0 +1,45 @@
+Resources:
+
+  Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python2.7
+      Role:
+        Fn::ImportValue: {{ deployment['project_name'] }}-lambda-execution-role
+      Code:
+        S3Bucket:
+          Fn::ImportValue: {{ deployment['project_name'] }}-lambda-bucket
+        S3Key: {{ deployment['project_name'] }}-app.zip
+      Tags:
+{% for key, value in deployment['audit_tags'].iteritems() %}
+        - Key: {{ key }}
+          Value: {{ value }}
+{% endfor %}
+
+  StagingAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: { Ref: Lambda }
+      FunctionVersion: $LATEST
+      Name: staging
+
+  ProductionAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: { Ref: Lambda }
+      FunctionVersion: $LATEST
+      Name: production
+
+Outputs:
+
+  LambdaArn:
+    Value:
+      Fn::GetAtt: [ Lambda, Arn ]
+    Export:
+      Name: {{ deployment['project_name'] }}-lambda-arn
+
+  LambdaFunctionName:
+    Value: { Ref: Lambda }
+    Export:
+      Name: {{ deployment['project_name'] }}-lambda-name

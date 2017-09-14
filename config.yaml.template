@@ -1,0 +1,18 @@
+# Please refer to https://github.com/excessivedemon/platform-infrastructure for more information
+deployment:
+  project_name: platform # prefix used for deploying AWS resources
+  region: ap-southeast-2 # AWS region to deploy cloudformation stacks to
+  profile: default # AWS profile to use when deploying AWS resources; see http://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html
+  role_name: # AWS IAM role to assume in another AWS account; only used when authenticating in a separate AWS (identity) account and deploying resources in another AWS account
+  account_id: # AWS account (id) where the value for role_name (above) exists; only used when authenticating in a separate AWS (identity) account and deploying resources in another AWS account
+  audit_tags: # AWS resource tags applied to deployed AWS resources (for auditing and cost allocation purposes); see https://aws.amazon.com/answers/account-management/aws-tagging-strategies/
+    Customer: customer1
+    Owner: my.email@address
+
+github:
+  Owner: excessivedemon # GitHub username
+  Repo: platform-application # GitHub repository containing the application to be deployed; see https://github.com/excessivedemon/platform-application
+  OAuthToken: xxxx # GitHub OAuthToken for granting AWS CodePipeline access to the GitHub repo; see https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/
+  staging_branch: staging # git branch for staging environment
+  production_branch: master # git branch for master environment
+  repo_url: https://github.com/excessivedemon/platform-application.git # GitHub repository url containing the application to be deployed

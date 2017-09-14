@@ -1,0 +1,6 @@
+- name: fetch {{ item }} api invoke url 
+  shell: aws cloudformation --region {{ deployment['region'] }} describe-stacks --stack-name {{ deployment['project_name'] }}-application-api-gateway --query "Stacks[0].Outputs[?OutputKey=='{{ item|capitalize }}StageInvokeUrl'].OutputValue" --output text
+  register: invoke_url
+
+- debug:
+    msg: "{{ item|capitalize }} API invoke URL is {{ invoke_url.stdout }}"

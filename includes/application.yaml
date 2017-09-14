@@ -1,0 +1,38 @@
+- set_fact:
+    templates:
+      - application-iam
+      - application-s3
+      - application-lambda
+      - application-api-gateway
+      - application-codebuild
+      - application-codepipeline
+
+- file:
+    path: build/*
+    state: absent
+
+- template:
+    src: "templates/{{ item }}.yaml.j2"
+    dest: build/{{ item }}.yaml
+  with_items: "{{ templates }}"
+
+- cloudformation:
+    stack_name: "{{ deployment['project_name'] }}-application-s3"
+    region: "{{ deployment['region'] }}"
+    template: build/application-s3.yaml
+    state: "{{ state|default('present') }}"
+
+- include: includes/lambda.yaml
+
+- cloudformation:
+    stack_name: "{{ deployment['project_name'] }}-{{ item }}"
+    region: "{{ deployment['region'] }}"
+    template: build/{{ item }}.yaml
+    state: "{{ state|default('present') }}"
+  with_items: "{{ templates }}"
+  when: item != "application-s3"
+
+- include: includes/print_stack_output.yaml
+  with_items:
+    - staging
+    - production

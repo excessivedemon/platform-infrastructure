@@ -1,0 +1,110 @@
+Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+            - sts:AssumeRole
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - codebuild.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: CodeBuildPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - lambda:UpdateFunctionCode
+              - lambda:UpdateAlias
+            Resource: "*"
+
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - codepipeline.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: S3ObjectPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: "*"
+      - PolicyName: CodeBuildPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+              - codebuild:BatchGetBuilds
+              - codebuild:StartBuild
+            Resource: "*"
+
+  CloudWatchLogsServicePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CloudWatchLogsServicePolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: arn:aws:logs:*:*:*
+      Roles:
+        - { Ref: LambdaExecutionRole }
+        - { Ref: CodeBuildServiceRole }
+
+Outputs:
+
+  LambdaExecutionRole:
+    Value:
+      Fn::GetAtt: [ LambdaExecutionRole, Arn ]
+    Export:
+      Name: {{ deployment['project_name'] }}-lambda-execution-role
+
+  CodeBuildServiceRole:
+    Value:
+      Fn::GetAtt: [ CodeBuildServiceRole, Arn ]
+    Export:
+      Name: {{ deployment['project_name'] }}-codebuild-service-role
+
+  CodePipelineServiceRole:
+    Value:
+      Fn::GetAtt: [ CodePipelineServiceRole, Arn ]
+    Export:
+      Name: {{ deployment['project_name'] }}-codepipeline-service-role

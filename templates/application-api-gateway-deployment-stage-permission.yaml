@@ -1,0 +1,28 @@
+{{ stage|capitalize }}Deployment:
+  DependsOn: ProxyResourceANY
+  Type: AWS::ApiGateway::Deployment
+  Properties:
+    RestApiId: { Ref: RestAPI }
+    Description: {{ deployment['project_name'] }} {{ stage }} deployment
+
+{{ stage|capitalize }}Stage:
+  Type: AWS::ApiGateway::Stage
+  Properties:
+    StageName: {{ stage }}
+    RestApiId: { Ref: RestAPI }
+    DeploymentId: { Ref: {{ stage|capitalize }}Deployment }
+    Variables:
+      LambdaFunctionAlias: {{ stage }}
+
+{{ stage|capitalize }}RestAPIPermission:
+  Type: AWS::Lambda::Permission
+  DependsOn: RestAPI
+  Properties:
+    Action: lambda:InvokeFunction
+    FunctionName:
+      Fn::Join:
+        - ":"
+        - - Fn::ImportValue: {{ deployment['project_name'] }}-lambda-name
+          - "{{ stage }}"
+    Principal: apigateway.amazonaws.com
+

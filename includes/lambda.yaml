@@ -1,0 +1,27 @@
+- shell: virtualenv build/venv
+
+- git:
+    repo: https://github.com/excessivedemon/platform-application.git
+    dest: build/platform-application
+    version: master
+
+- pip:
+    requirements: "{{ playbook_dir }}/build/platform-application/requirements.txt"
+    virtualenv: "{{ playbook_dir }}/build/venv"
+
+- archive:
+    format: zip
+    path:
+      - build/venv/lib/python2.7/site-packages/*
+    dest: build/{{ deployment['project_name'] }}-app.zip
+
+- shell: zip -r ../{{ deployment['project_name'] }}-app.zip *.py
+  args:
+    chdir: build/platform-application
+
+- s3:
+    bucket: "{{ deployment['project_name'] }}-lambda-bucket"
+    object: "{{ deployment['project_name'] }}-app.zip"
+    src: build/{{ deployment['project_name'] }}-app.zip
+    mode: put
+    region: "{{ deployment['region'] }}"

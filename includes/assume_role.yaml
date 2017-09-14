@@ -1,0 +1,14 @@
+- name: assume {{ deployment['role_name'] }} role on account {{ deployment['account_id'] }}
+  command: aws sts assume-role --role-arn arn:aws:iam::{{ deployment['account_id'] }}:role/{{ deployment['role_name'] }} --role-session-name {{ deployment['role_name'] }} --output json
+  register: credentials
+  when: "'account_id' in deployment and 'role_name' in deployment"
+
+- name: set assumed credentials 
+  set_fact:
+    aws_credentials:
+      AWS_ACCESS_KEY_ID: "{{ (credentials.stdout|from_json)['Credentials']['AccessKeyId'] }}"
+      AWS_SECRET_ACCESS_KEY: "{{ (credentials.stdout|from_json)['Credentials']['SecretAccessKey'] }}"
+      AWS_SECURITY_TOKEN: "{{ (credentials.stdout|from_json)['Credentials']['SessionToken'] }}"
+  when: "'account_id' in deployment and 'role_name' in deployment"
+
+

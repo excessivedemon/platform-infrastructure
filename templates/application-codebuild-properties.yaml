@@ -1,0 +1,38 @@
+Properties:
+  Name: {{ deployment['project_name'] }}-{{ stage }}
+  ServiceRole: 
+    Fn::ImportValue: {{ deployment['project_name'] }}-codebuild-service-role
+  Artifacts:
+    Type: CODEPIPELINE
+  Environment:
+    Type: LINUX_CONTAINER
+    ComputeType: BUILD_GENERAL1_SMALL
+    Image: aws/codebuild/python:2.7.12
+    EnvironmentVariables:
+      - Name: ARTIFACT_BUCKET
+        Value:
+          Fn::ImportValue: {{ deployment['project_name'] }}-lambda-bucket
+      - Name: ARTIFACT_BUCKET_KEY
+        Value: {{ deployment['project_name'] }}-app.zip
+      - Name: LAMBDA_FUNCTION_NAME
+        Value:
+          Fn::ImportValue: {{ deployment['project_name'] }}-lambda-name
+      - Name: LAMBDA_EXECUTION_ROLE
+        Value:
+          Fn::ImportValue: {{ deployment['project_name'] }}-lambda-execution-role
+      - Name: LAMBDA_FUNCTION_ALIAS
+        Value: {{ stage }}
+      - Name: GITHUB_REPO_URL
+        Value: {{ github['repo_url'] }}
+      - Name: API_INVOKE_URL
+        Value:
+          Fn::ImportValue: {{ deployment['project_name'] }}-api-gateway-{{ stage }}-invoke-url
+  Source:
+    Type: CODEPIPELINE
+    BuildSpec: build/buildspec.yaml
+  TimeoutInMinutes: 10
+  Tags:
+{% for key, value in deployment['audit_tags'].iteritems() %}
+    - Key: {{ key }}
+      Value: {{ value }}
+{% endfor %}

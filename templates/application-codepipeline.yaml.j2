@@ -1,0 +1,11 @@
+{% macro properties(branch, stage) %}{% include './application-codepipeline-properties.yaml' %}{% endmacro %}
+Resources:
+  
+  StagingPipeline:
+    Type: AWS::CodePipeline::Pipeline
+{{ properties(github['staging_branch'], 'staging')|indent(4, True) }}
+
+  ProductionPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+{{ properties(github['production_branch'], 'production')|indent(4, True) }}

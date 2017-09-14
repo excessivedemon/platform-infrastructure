@@ -1,0 +1,18 @@
+Resources:
+
+  LambdaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: {{ deployment['project_name'] }}-lambda-bucket
+      Tags:
+{% for key, value in deployment['audit_tags'].iteritems() %}
+        - Key: {{ key }}
+          Value: {{ value }}
+{% endfor %}
+
+Outputs:
+
+  LambdaBucket:
+    Value: { Ref: LambdaBucket }
+    Export:
+      Name: {{ deployment['project_name'] }}-lambda-bucket

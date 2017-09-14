@@ -1,0 +1,51 @@
+{% macro resources(stage) %}{% include './application-api-gateway-deployment-stage-permission.yaml' %}{% endmacro %}
+{% macro output(stage) %}{% include './application-api-gateway-output.yaml' %}{% endmacro %}
+Resources:
+
+  RestAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: {{ deployment['project_name'] }}-api
+
+  ProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: { Ref: RestAPI }
+      ParentId:
+        Fn::GetAtt: [ RestAPI, RootResourceId ]
+      PathPart: "{proxy+}"
+
+  ProxyResourceANY:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: { Ref: RestAPI }
+      ResourceId: { Ref: ProxyResource }
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambda_arn}:${!stageVariables.LambdaFunctionAlias}/invocations
+            -
+              lambda_arn:
+                Fn::ImportValue: {{ deployment['project_name'] }}-lambda-arn
+
+{{ resources('staging')|indent(2, True) }}
+
+{{ resources('production')|indent(2, True) }}
+
+Outputs:
+
+  StagingStageInvokeUrl:
+    Value:
+      Fn::Sub: https://${RestAPI}.execute-api.{{ deployment['region'] }}.amazonaws.com/${StagingStage}
+    Export:
+      Name: {{ deployment['project_name'] }}-api-gateway-staging-invoke-url
+
+  ProductionStageInvokeUrl:
+    Value:
+      Fn::Sub: https://${RestAPI}.execute-api.{{ deployment['region'] }}.amazonaws.com/${ProductionStage}
+    Export:
+      Name: {{ deployment['project_name'] }}-api-gateway-production-invoke-url

@@ -1,0 +1,35 @@
+Properties:
+  RoleArn:
+    Fn::ImportValue: {{ deployment['project_name'] }}-codepipeline-service-role
+  Stages:
+    - Name: Source
+      Actions:
+        - Name: SourceAction
+          ActionTypeId:
+            Category: Source
+            Owner: ThirdParty
+            Provider: GitHub
+            Version: 1
+          Configuration:
+            Owner: {{ github['Owner'] }}
+            Repo: {{ github['Repo'] }} 
+            Branch: {{ branch }}
+            OAuthToken: {{ github['OAuthToken'] }}
+          OutputArtifacts:
+            - Name: SourceCode
+    - Name: Build
+      Actions:
+        - Name: SourceOutput
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Provider: CodeBuild
+            Version: 1
+          Configuration:
+            ProjectName: {{ deployment['project_name'] }}-{{ stage }}
+          InputArtifacts:
+            - Name: SourceCode
+  ArtifactStore:
+    Type: S3
+    Location:
+      Fn::ImportValue: {{ deployment['project_name'] }}-lambda-bucket
